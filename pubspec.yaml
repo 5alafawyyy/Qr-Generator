@@ -43,8 +43,9 @@ dependencies:
   share_plus: ^11.0.0
   shared_preferences: ^2.2.2
   image: ^3.2.2
-  image_gallery_saver: ^2.0.3
+  # image_gallery_saver: ^2.0.3
   file_picker: ^10.1.8
+  image_gallery_saver_plus: ^4.0.1
 
 dev_dependencies:
   flutter_test:

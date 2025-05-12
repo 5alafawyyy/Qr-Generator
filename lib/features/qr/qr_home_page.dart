@@ -8,7 +8,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image/image.dart' as img;
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+// import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
 import 'web_utils_stub.dart'
@@ -271,7 +272,7 @@ class _QRHomePageState extends State<QRHomePage> {
       await file.writeAsBytes(finalImageBytes);
 
       if (!Platform.isWindows) {
-        await ImageGallerySaver.saveFile(file.path);
+        await ImageGallerySaverPlus.saveFile(file.path);
       }
 
       setState(() {

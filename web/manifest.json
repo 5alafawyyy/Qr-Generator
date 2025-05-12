@@ -1,11 +1,11 @@
 {
-    "name": "qr_generator",
-    "short_name": "qr_generator",
+    "name": "Qr Generator",
+    "short_name": "Qr Generator",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "A modern QR code generator with logo support and sharing capabilities.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

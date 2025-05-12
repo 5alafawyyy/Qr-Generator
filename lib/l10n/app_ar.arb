@@ -1,0 +1,22 @@
+{
+  "appTitle": "انشاء QR",
+  "enterData": "أدخل بيانات رمز QR",
+  "pickLogo": "اختر شعار (اختياري)",
+  "generateQR": "إنشاء رمز QR",
+  "save": "حفظ",
+  "share": "مشاركة",
+  "history": "السجل",
+  "noHistory": "لا يوجد سجل رموز QR بعد.",
+  "clearHistory": "مسح السجل",
+  "clearHistoryConfirm": "هل أنت متأكد أنك تريد مسح كل سجل رموز QR؟",
+  "cancel": "إلغاء",
+  "clear": "مسح",
+  "historyCleared": "تم مسح السجل",
+  "qrDownloaded": "تم تنزيل رمز QR!",
+  "qrSaved": "تم حفظ رمز QR بنجاح!",
+  "invalidQRData": "بيانات QR غير صالحة.",
+  "sharingCancelled": "تم إلغاء المشاركة",
+  "qrDataCopied": "تم نسخ بيانات QR إلى الحافظة!",
+  "pleaseGenerateFirst": "يرجى إنشاء وحفظ رمز QR أولاً.",
+  "qrFileNotFound": "لم يتم العثور على ملف رمز QR."
+} 

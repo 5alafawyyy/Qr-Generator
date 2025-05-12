@@ -1,6 +1,6 @@
-# qr_generator
+# Qr Generator
 
-A new Flutter project.
+A modern QR code generator with logo support and sharing capabilities.
 
 ## Getting Started
 

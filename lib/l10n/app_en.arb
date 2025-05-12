@@ -1,0 +1,22 @@
+{
+  "appTitle": "QR Generator",
+  "enterData": "Enter data for QR",
+  "pickLogo": "Pick Logo (optional)",
+  "generateQR": "Generate QR Code",
+  "save": "Save",
+  "share": "Share",
+  "history": "History",
+  "noHistory": "No QR history yet.",
+  "clearHistory": "Clear History",
+  "clearHistoryConfirm": "Are you sure you want to clear all QR code history?",
+  "cancel": "Cancel",
+  "clear": "Clear",
+  "historyCleared": "History cleared",
+  "qrDownloaded": "QR downloaded!",
+  "qrSaved": "QR saved successfully!",
+  "invalidQRData": "Invalid QR data.",
+  "sharingCancelled": "Sharing cancelled",
+  "qrDataCopied": "QR data copied to clipboard!",
+  "pleaseGenerateFirst": "Please generate and save the QR code first.",
+  "qrFileNotFound": "QR code file not found."
+} 

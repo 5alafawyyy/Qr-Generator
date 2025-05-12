@@ -11,10 +11,71 @@ import 'package:image/image.dart' as img;
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
-// ignore: deprecated_member_use, avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+import 'web_utils_stub.dart'
+    if (dart.library.html) 'web_utils.dart'
+    as web_utils;
 import 'qr_history_item.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
+
+class QrIsolateParams {
+  final String qrData;
+  final Uint8List? logoBytes;
+  QrIsolateParams(this.qrData, this.logoBytes);
+}
+
+Future<Uint8List> generateQrWithLogo(QrIsolateParams params) async {
+  final qrValidationResult = QrValidator.validate(
+    data: params.qrData,
+    version: QrVersions.auto,
+    errorCorrectionLevel: QrErrorCorrectLevel.H,
+  );
+  if (qrValidationResult.status != QrValidationStatus.valid) {
+    throw Exception('Invalid QR data.');
+  }
+  final qrPainter = QrPainter(
+    data: params.qrData,
+    version: QrVersions.auto,
+    gapless: false,
+    errorCorrectionLevel: QrErrorCorrectLevel.H,
+  );
+  final picData = await qrPainter.toImageData(400, format: ImageByteFormat.png);
+  if (picData == null) throw Exception('Failed to generate QR image');
+  final qrImage = img.decodeImage(picData.buffer.asUint8List());
+  img.Image? paddedQrImage;
+  if (qrImage != null) {
+    const padding = 60;
+    paddedQrImage = img.Image(
+      qrImage.width + padding * 2,
+      qrImage.height + padding * 2,
+    );
+    img.copyInto(paddedQrImage, qrImage, dstX: padding, dstY: padding);
+  }
+  if (params.logoBytes != null && paddedQrImage != null) {
+    final logoImage = img.decodeImage(params.logoBytes!);
+    if (logoImage != null) {
+      final logoSize = (qrImage!.width * 0.15).toInt();
+      final resizedLogo = img.copyResize(
+        logoImage,
+        width: logoSize,
+        height: logoSize,
+      );
+      final x = (paddedQrImage.width - logoSize) ~/ 2;
+      final y = (paddedQrImage.height - logoSize) ~/ 2;
+      final logoBackground = img.Image(logoSize + 40, logoSize + 40);
+      img.fill(logoBackground, img.getColor(255, 255, 255));
+      img.copyInto(logoBackground, resizedLogo, dstX: 20, dstY: 20);
+      img.copyInto(
+        paddedQrImage,
+        logoBackground,
+        dstX: x - 20,
+        dstY: y - 20,
+        blend: false,
+      );
+    }
+  }
+  return Uint8List.fromList(img.encodePng(paddedQrImage!));
+}
 
 class QRHomePage extends StatefulWidget {
   final Function(Locale) onLocaleChanged;
@@ -93,6 +154,7 @@ class _QRHomePageState extends State<QRHomePage> {
     if (_controller.text.isEmpty) return;
     setState(() => _isGenerating = true);
     try {
+      // Native (non-web) image processing
       final qrValidationResult = QrValidator.validate(
         data: _controller.text,
         version: QrVersions.auto,
@@ -105,24 +167,19 @@ class _QRHomePageState extends State<QRHomePage> {
         setState(() => _isGenerating = false);
         return;
       }
-
       final qrPainter = QrPainter(
         data: _controller.text,
         version: QrVersions.auto,
         gapless: false,
         errorCorrectionLevel: QrErrorCorrectLevel.H,
       );
-
       final picData = await qrPainter.toImageData(
         800,
         format: ImageByteFormat.png,
       );
       if (picData == null) throw Exception('Failed to generate QR image');
-
-      // 1. Decode the QR image
       final qrImage = img.decodeImage(picData.buffer.asUint8List());
 
-      // Add padding around the QR image
       img.Image? paddedQrImage;
       if (qrImage != null) {
         const padding = 60;
@@ -132,19 +189,9 @@ class _QRHomePageState extends State<QRHomePage> {
         );
         img.copyInto(paddedQrImage, qrImage, dstX: padding, dstY: padding);
       }
-
-      // 2. If logo is selected, overlay it with padding
-      if ((kIsWeb ? _logoBytes != null : _logoFile != null) &&
-          paddedQrImage != null) {
-        Uint8List logoBytes;
-        if (kIsWeb) {
-          if (_logoBytes == null) return;
-          logoBytes = _logoBytes!;
-        } else {
-          logoBytes = await _logoFile!.readAsBytes();
-        }
+      if (!kIsWeb && _logoFile != null && paddedQrImage != null) {
+        final logoBytes = await _logoFile!.readAsBytes();
         final logoImage = img.decodeImage(logoBytes);
-
         if (logoImage != null) {
           final logoSize = (qrImage!.width * 0.15).toInt();
           final resizedLogo = img.copyResize(
@@ -152,15 +199,11 @@ class _QRHomePageState extends State<QRHomePage> {
             width: logoSize,
             height: logoSize,
           );
-
           final x = (paddedQrImage.width - logoSize) ~/ 2;
           final y = (paddedQrImage.height - logoSize) ~/ 2;
-
           final logoBackground = img.Image(logoSize + 40, logoSize + 40);
           img.fill(logoBackground, img.getColor(255, 255, 255));
-
           img.copyInto(logoBackground, resizedLogo, dstX: 20, dstY: 20);
-
           img.copyInto(
             paddedQrImage,
             logoBackground,
@@ -172,29 +215,22 @@ class _QRHomePageState extends State<QRHomePage> {
       }
 
       // 3. Save the final image
-      final finalImageBytes = img.encodePng(paddedQrImage!);
-
       if (kIsWeb) {
-        final blob = html.Blob([finalImageBytes], 'image/png');
-        final url = html.Url.createObjectUrlFromBlob(blob);
-
-        // Create a download link with a default filename
-        final fileName = 'qr_${DateTime.now().millisecondsSinceEpoch}.png';
-        final anchor =
-            html.AnchorElement(href: url)
-              ..download = fileName
-              ..style.display = 'none';
-
-        // Add click event listener to remove the element after download starts
-        anchor.onClick.listen((event) {
-          html.document.body!.children.remove(anchor);
-          html.Url.revokeObjectUrl(url);
-        });
-
-        // Add to document and trigger click
-        html.document.body!.children.add(anchor);
-        anchor.click();
-
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.qrDownloaded)),
+          );
+          await Future.delayed(Duration.zero);
+        }
+        // Move all image processing to an isolate
+        final encodedBytes = await compute(
+          generateQrWithLogo,
+          QrIsolateParams(_controller.text, _logoBytes),
+        );
+        await web_utils.saveFileWeb(
+          encodedBytes,
+          'qr_${DateTime.now().millisecondsSinceEpoch}.png',
+        );
         setState(() {
           _qrImagePath = null; // No file path on web
           _history.insert(
@@ -207,11 +243,6 @@ class _QRHomePageState extends State<QRHomePage> {
           );
         });
         await _saveHistory();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.qrDownloaded)),
-          );
-        }
         setState(() => _isGenerating = false);
         return;
       }
@@ -236,6 +267,7 @@ class _QRHomePageState extends State<QRHomePage> {
       }
 
       final file = File(savePath);
+      final finalImageBytes = img.encodePng(paddedQrImage!);
       await file.writeAsBytes(finalImageBytes);
 
       if (!Platform.isWindows) {
@@ -273,14 +305,22 @@ class _QRHomePageState extends State<QRHomePage> {
 
   Future<void> _shareQR() async {
     if (kIsWeb) {
-      final blob = html.Blob([await _getCurrentQRBytes()], 'image/png');
-      final file = html.File([blob], 'qr.png', {'type': 'image/png'});
-      final data = {
-        'files': [file],
-        'title': 'QR Code',
-        'text': 'QR Code for: ${_controller.text}',
-      };
-      await html.window.navigator.share(data);
+      try {
+        final bytes = await _getCurrentQRBytes();
+        await web_utils.shareFileWeb(bytes, _controller.text);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Center(
+                child: Text(
+                  'Sharing is not supported on this browser or failed. QR data copied to clipboard.',
+                ),
+              ),
+            ),
+          );
+        }
+      }
       return;
     }
     if (_qrImagePath == null) {

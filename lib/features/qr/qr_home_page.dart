@@ -151,6 +151,13 @@ class _QRHomePageState extends State<QRHomePage> {
     }
   }
 
+  void _clearLogo() {
+    setState(() {
+      _logoFile = null;
+      _logoBytes = null;
+    });
+  }
+
   Future<void> _generateAndSaveQR() async {
     if (_controller.text.isEmpty) return;
     setState(() => _isGenerating = true);
@@ -635,24 +642,50 @@ class _QRHomePageState extends State<QRHomePage> {
                 ),
                 if (_logoFile != null || _logoBytes != null) ...[
                   const SizedBox(width: 8),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child:
-                          kIsWeb
-                              ? (_logoBytes != null
-                                  ? Image.memory(_logoBytes!)
-                                  : const SizedBox())
-                              : (_logoFile != null
-                                  ? Image.file(_logoFile!)
-                                  : const SizedBox()),
-                    ),
+                  Stack(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child:
+                              kIsWeb
+                                  ? (_logoBytes != null
+                                      ? Image.memory(_logoBytes!)
+                                      : const SizedBox())
+                                  : (_logoFile != null
+                                      ? Image.file(_logoFile!)
+                                      : const SizedBox()),
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: GestureDetector(
+                          onTap: _clearLogo,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(4),
+                                topRight: Radius.circular(8),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 10,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ],
